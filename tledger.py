@@ -1,6 +1,8 @@
 import argparse
-from datetime import date
+import pandas as pd
+from datetime import date, timedelta
 from tabulate import tabulate
+
 
 
 def save_entry(ttype: str, amount: int, date=date.today()):
@@ -10,28 +12,40 @@ def save_entry(ttype: str, amount: int, date=date.today()):
 
 
 def read_file(file_name: str):
-    result = {}
-    with open(file_name, "r") as file:
-        lines = file.readlines()
-        for line in lines:
-            day,type,value = line.strip().split(" ")
-            if day in result.keys():
-                if type in result[day].keys():
-                    result[day][type] += int(value)
-                else:
-                    result[day][type] = int(value)
-            else:
-                result[day] = {type : int(value)}
-    return {k: v for k,v in sorted(result.items())}
+    data_frame = pd.read_csv(file_name, sep=" ", names=["date", "type", "value"])
+    
+    table = data_frame.pivot_table(index="date", columns="type", values="value", aggfunc="sum", fill_value=0)
+    table = table.astype(int)
+    table["total"] = table.sum(axis=1)
+    table["h:m"] = table["total"].apply(lambda x: f"{int(x) // 60}h {int(x) % 60}m")
+    table = table.replace(0, "-")
+    return table
 
 
 def show(type: str):
-    print(type)
+    file_name = f"{date.today().year}-{date.today().month}.txt"
+    print(f"Reading file: {file_name}")
+    print(f"Displaying: {type}")
+
+    table = read_file(file_name)
  
     if type == "today":
-        file_name = f"{date.today().year}-{date.today().month}.txt"
-        result = read_file(file_name)
-        print(result)
+        show_single_day(date.today(), table)
+    elif type == "yesterday":
+        show_single_day(date.today()-timedelta(days=1), table)
+    elif type == "month":
+        show_month(table)
+
+
+def show_single_day(day: date, table):
+    day_str = str(day)
+    print(f"Date: {day_str}")
+    single_day = table.loc[[day_str]]
+    print(tabulate(single_day, headers="keys", tablefmt="rounded_outline"))
+
+
+def show_month(table):
+    print(tabulate(table, headers="keys", tablefmt="rounded_outline"))
 
 
 if __name__ == "__main__":
@@ -39,7 +53,7 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--add", type=str, help="Add entry, requires category.  Defaults to today's date.")
     parser.add_argument("-t", "--time", type=int, help="Time in minutes.")
     parser.add_argument("-d", "--day", type=int, help="Specify day of the month. Used for date of current entry.")
-    parser.add_argument("-s", "--show", type=str, choices={"today", "yesterday"}, help="--show [today|yesterday|month|all] Show summary")
+    parser.add_argument("-s", "--show", type=str, choices={"today", "yesterday", "month"}, help="Show summary")
 
     args = parser.parse_args()
 
