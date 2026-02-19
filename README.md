@@ -12,7 +12,7 @@
   - [x] stat columns to the right
   - [x] --show yesterday
   - [ ] ability to specify a day to show
-- [ ] monthly preview
-  - [ ] display multiple rows
-  - [ ] sum at the bottom
+- [x] monthly preview
+  - [x] display multiple rows
+  - [x] sum at the bottom
 - [ ] ability to showsummary in hours
