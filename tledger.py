@@ -5,11 +5,13 @@ from datetime import date, timedelta
 from tabulate import tabulate
 from typing import cast
 
+
 TABLE_FORMAT = "fancy_outline"
 TODAY = "today"
 YESTERDAY = "yesterday"
 MONTH = "month"
 DAY = "day"
+
 
 def save_entry(ttype: str, amount: int, date=date.today()):
     file_name = f"{str(date.year)}-{str(date.month)}.txt"
@@ -50,9 +52,12 @@ def show(type: str, day: date | None = None):
         show_month(table)
         
 
+def show_single_day(day: date | None , table: DataFrame):
+    if not day:
+        day_str = str(date.today())
+    else:
+        day_str = str(day)
 
-def show_single_day(day: date, table):
-    day_str = str(day)
     print(f"Date: {day_str}")
 
     if day_str not in table.index:
@@ -60,15 +65,16 @@ def show_single_day(day: date, table):
         return
 
     single_day = table.loc[[day_str]]
-    print(tabulate(single_day, headers="keys", tablefmt=TABLE_FORMAT))
+
+    # know issue with tabulate type stubs, have to ignore type
+    print(tabulate(single_day, headers="keys", tablefmt=TABLE_FORMAT)) # type: ignore[arg-type]
 
 
-def show_month(table):
+def show_month(table: DataFrame):
     if "Total" in table.index:
         rows = table.drop("Total")
-        separator = pd.Series(["─" * 3] * len(table.columns), index=table.columns, name="")
+        separator = pd.Series(["─" * 3] * len(table.columns), index=table.columns, name="─" * 10)
         display = pd.concat([rows, separator.to_frame().T, table.loc[["Total"]]])
-        assert isinstance(display, DataFrame)
 
     print(tabulate(display, headers="keys", tablefmt=TABLE_FORMAT)) # type: ignore[arg-type]
 
