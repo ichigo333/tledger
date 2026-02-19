@@ -2,13 +2,14 @@ import argparse
 import pandas as pd
 from pandas import DataFrame
 from datetime import date, timedelta
-from tabulate import tabulate, SEPARATING_LINE
+from tabulate import tabulate
 from typing import cast
 
 TABLE_FORMAT = "fancy_outline"
 TODAY = "today"
 YESTERDAY = "yesterday"
 MONTH = "month"
+DAY = "day"
 
 def save_entry(ttype: str, amount: int, date=date.today()):
     file_name = f"{str(date.year)}-{str(date.month)}.txt"
@@ -32,7 +33,7 @@ def read_file(file_name: str):
     return table
 
 
-def show(type: str):
+def show(type: str, day: date | None = None):
     file_name = f"{date.today().year}-{date.today().month}.txt"
     print(f"Reading file: {file_name}")
     print(f"Displaying: {type}")
@@ -43,13 +44,21 @@ def show(type: str):
         show_single_day(date.today(), table)
     elif type == YESTERDAY:
         show_single_day(date.today()-timedelta(days=1), table)
+    elif type == DAY:
+        show_single_day(day, table)
     elif type == MONTH:
         show_month(table)
+        
 
 
 def show_single_day(day: date, table):
     day_str = str(day)
     print(f"Date: {day_str}")
+
+    if day_str not in table.index:
+        print(f"No entry found for {day_str}")
+        return
+
     single_day = table.loc[[day_str]]
     print(tabulate(single_day, headers="keys", tablefmt=TABLE_FORMAT))
 
@@ -68,22 +77,35 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="tledger")
     parser.add_argument("-a", "--add", type=str, help="Add entry, requires category.  Defaults to today's date.")
     parser.add_argument("-t", "--time", type=int, help="Time in minutes.")
-    parser.add_argument("-d", "--day", type=int, help="Specify day of the month. Used for date of current entry.")
-    parser.add_argument("-s", "--show", type=str, choices={TODAY, YESTERDAY, MONTH}, help="Show summary")
+    parser.add_argument("-d", "--day", type=int, help="Specify day of the month. Used for date of current entry or with --show day option")
+    parser.add_argument("-m", "--month", type=int, help="Specify month of the year. Used for date of current entry or with --show day option")
+    parser.add_argument("-s", "--show", type=str, choices={TODAY, YESTERDAY, MONTH, DAY}, help="Show summary")
 
     args = parser.parse_args()
 
     if args.add and not args.time:
         print("Error: --add option requires --time (-t) option")
+        exit()
+    if args.show and args.show == DAY and not args.day:
+        print("Error: --show day option requires --day [num] option")
+        exit()
+    if args.day and (args.day < 1 or args.day > 31):
+        print("Error: for --day [num] option, [num] must be between 1 and 31")
+        exit()
 
+    today = date.today()
     if args.add and args.time:
         print(f"{date.today()} {args.add} {args.time}")
 
         if args.day:
-            day = date(year=date.today().year, month=date.today().month, day=args.day)
-            save_entry(args.add, args.time, day)
+            selected_day = date(year=today.year, month=today.month, day=args.day)
+            save_entry(args.add, args.time, selected_day)
         else:
             save_entry(args.add, args.time)
     elif args.show:
-        show(args.show)
+        selected_day = None
+        if args.day:
+            selected_day = date(year=today.year, month=today.month, day=args.day)
+
+        show(args.show, selected_day)
         
