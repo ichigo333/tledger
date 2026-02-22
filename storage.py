@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 from datetime import date
 from typing import cast
 
@@ -10,6 +11,10 @@ def save_entry(ttype: str, amount: int, date=date.today()):
 
 
 def read_file(file_name: str):
+    if not os.path.isfile(file_name):
+        print(f"No data found.  File name: {file_name}")
+        exit()
+
     data_frame = pd.read_csv(file_name, sep=" ", names=["date", "type", "value"])
     
     table = data_frame.pivot_table(index="date", columns="type", values="value", aggfunc="sum", fill_value=0)

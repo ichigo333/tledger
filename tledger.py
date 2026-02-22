@@ -3,7 +3,7 @@ from datetime import date
 from storage import save_entry, read_file
 from options import *
 from display import display
-
+from config_handler import load_config
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="tledger")
@@ -26,6 +26,8 @@ if __name__ == "__main__":
         exit()
 
     today = date.today()
+    data_dir = load_config()["data_dir"]
+
     if args.add and args.time:
         print(f"{date.today()} {args.add} {args.time}")
 
@@ -39,7 +41,7 @@ if __name__ == "__main__":
         if args.day:
             selected_day = date(year=today.year, month=today.month, day=args.day)
 
-        file_name = f"{date.today().year}-{date.today().month}.txt"
+        file_name = f"{data_dir}/{date.today().year}-{date.today().month}.txt"
         print(f"Reading file: {file_name}")
         table = read_file(file_name)
         display(args.show, table, selected_day)

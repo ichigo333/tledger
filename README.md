@@ -18,3 +18,4 @@
   - [x] display multiple rows
   - [x] sum at the bottom
 - [ ] ability to showsummary in hours
+- [ ] handle situation when monthly file doesn't exist
