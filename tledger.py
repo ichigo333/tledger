@@ -1,9 +1,26 @@
 import argparse
+import os
 from datetime import date
 from storage import save_entry, read_file
 from options import *
 from display import display
 from config_handler import load_config
+
+def are_args_validated(args) -> bool:
+    if args.add and not args.time:
+        print("Error: --add option requires --time (-t) option")
+        return False
+    if (args.add and args.month) and not args.day:
+        print("Error: --month option requires --day option when using --add")
+        return False
+    if args.show and args.show == DAY and not args.day:
+        print("Error: --show day option requires --day [num] option")
+        return False
+    if args.day and (args.day < 1 or args.day > 31):
+        print("Error: for --day [num] option, [num] must be between 1 and 31")
+        return False
+    
+    return True
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="tledger")
@@ -15,34 +32,22 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if args.add and not args.time:
-        print("Error: --add option requires --time (-t) option")
-        exit()
-    if args.show and args.show == DAY and not args.day:
-        print("Error: --show day option requires --day [num] option")
-        exit()
-    if args.day and (args.day < 1 or args.day > 31):
-        print("Error: for --day [num] option, [num] must be between 1 and 31")
+    if not are_args_validated(args):
         exit()
 
-    today = date.today()
-    data_dir = load_config()["data_dir"]
+    data_dir = os.path.expanduser(load_config()["data_dir"])
+
+    selected_date = date.today()
+    if args.day:
+        selected_date = date(year=selected_date.year, month=selected_date.month, day=args.day)
+    if args.month:
+        selected_date = date(year=selected_date.year, month=args.month, day=selected_date.day)
+
+    file_name = f"{data_dir}/{selected_date.year}-{selected_date.month:02d}.txt"
 
     if args.add and args.time:
-        print(f"{date.today()} {args.add} {args.time}")
-
-        if args.day:
-            selected_day = date(year=today.year, month=today.month, day=args.day)
-            save_entry(args.add, args.time, selected_day)
-        else:
-            save_entry(args.add, args.time)
+        save_entry(file_name, args.add, args.time, selected_date)  
     elif args.show:
-        selected_day = None
-        if args.day:
-            selected_day = date(year=today.year, month=today.month, day=args.day)
-
-        file_name = f"{data_dir}/{date.today().year}-{date.today().month}.txt"
-        print(f"Reading file: {file_name}")
         table = read_file(file_name)
-        display(args.show, table, selected_day)
+        display(args.show, table, selected_date)
         

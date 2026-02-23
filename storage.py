@@ -4,10 +4,12 @@ from datetime import date
 from typing import cast
 
 
-def save_entry(ttype: str, amount: int, date=date.today()):
-    file_name = f"{str(date.year)}-{str(date.month)}.txt"
+def save_entry(file_name: str, ttype: str, amount: int, selected_date=date.today()):
+    print(f"Entry: {selected_date} {ttype} {amount}")
+    print(f"Writing to file: {file_name}")
+
     with open(file_name, 'a') as file:
-        file.write(f"{date} {ttype} {amount}\n")
+        file.write(f"{selected_date} {ttype} {amount}\n")
 
 
 def read_file(file_name: str):
@@ -15,6 +17,7 @@ def read_file(file_name: str):
         print(f"No data found.  File name: {file_name}")
         exit()
 
+    print(f"Reading file: {file_name}")
     data_frame = pd.read_csv(file_name, sep=" ", names=["date", "type", "value"])
     
     table = data_frame.pivot_table(index="date", columns="type", values="value", aggfunc="sum", fill_value=0)

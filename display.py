@@ -6,7 +6,7 @@ from options import *
 
 TABLE_FORMAT = "fancy_outline"
 
-def display(type: str, table: DataFrame, day: date | None = None):
+def display(type: str, table: DataFrame, selected_date: date):
     print(f"Displaying: {type}")
 
     table = table.replace(0, "-")
@@ -16,24 +16,19 @@ def display(type: str, table: DataFrame, day: date | None = None):
     elif type == YESTERDAY:
         display_single_day(date.today()-timedelta(days=1), table)
     elif type == DAY:
-        display_single_day(day, table)
+        display_single_day(selected_date, table)
     elif type == MONTH:
         display_month(table)
 
 
-def display_single_day(day: date | None , table: DataFrame):
-    if not day:
-        day_str = str(date.today())
-    else:
-        day_str = str(day)
+def display_single_day(selected_date: date, table: DataFrame):
+    print(f"Date: {selected_date}")
 
-    print(f"Date: {day_str}")
-
-    if day_str not in table.index:
-        print(f"No entry found for {day_str}")
+    if str(selected_date) not in table.index:
+        print(f"No entry found for {selected_date}")
         return
 
-    single_day = table.loc[[day_str]]
+    single_day = table.loc[[str(selected_date)]]
 
     # know issue with tabulate type stubs, have to ignore type
     print(tabulate(single_day, headers="keys", tablefmt=TABLE_FORMAT)) # type: ignore[arg-type]
