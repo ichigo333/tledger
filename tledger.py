@@ -22,8 +22,6 @@ def validate_args(parser: argparse.ArgumentParser, args):
             parser.error("--show day with --year option requires --month [num] option")
 
     if args.show == MONTH: 
-        # if not args.month:
-        #     parser.error("--show month option requires --month [num] option")
         if args.day:
             print("Warning: --show month option ignores --day [num] option")
 
