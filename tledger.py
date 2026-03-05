@@ -22,13 +22,13 @@ def validate_args(parser: argparse.ArgumentParser, args):
             parser.error("--show day with --year option requires --month [num] option")
 
     if args.show == MONTH: 
-        if not args.month:
-            parser.error("--show month option requires --month [num] option")
+        # if not args.month:
+        #     parser.error("--show month option requires --month [num] option")
         if args.day:
             print("Warning: --show month option ignores --day [num] option")
 
 
-def parse_date(args) -> date:
+def parse_date(parser: argparse.ArgumentParser, args) -> date:
     today = date.today()
     year  = args.year  or today.year
     month = args.month or today.month
@@ -37,7 +37,7 @@ def parse_date(args) -> date:
     try:
         return date(year=year, month=month, day=day)
     except ValueError as e:
-        raise argparse.ArgumentTypeError(f"Invalid date: {e}")
+        parser.error(f"Invalid date: {e}")
 
 
 if __name__ == "__main__":
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     validate_args(parser, args)
 
-    selected_date = parse_date(args)
+    selected_date = parse_date(parser, args)
 
     data_dir = os.path.expanduser(load_config()["data_dir"])
     file_name = f"{data_dir}/{selected_date.year}-{selected_date.month:02d}.txt"
